@@ -11,9 +11,9 @@ library(dbscan)
 
 #### Load data ####
 
-df_ei_imp_final <- readRDS("Output/Data_clean/08_df_ei_imp_final")
+df_ei_imp_final <- readRDS("Data/00_Complete_trait_data_birds")
 
-tg <- readRDS("Output/Data_clean/10_data_for_traits_groups")
+tg <- readRDS("Output/02_data_for_traits_groups")
 all_groups <- tg %>% filter(!is.na(hab_sum))
 
 #### Set up species groups ####
@@ -177,7 +177,7 @@ predict_dd <- left_join(
   left_join(buffer_d2_df, buffer_d1_df, by=c("DD_sp","group2"))) %>%
   mutate_at(c("n_10_closest","n_b1","prop_b1"),  ~ ifelse(is.na(.), 0, .))
 
-saveRDS(predict_dd, "Output/Predict_DD/20_metrics_predict_dd_pc1to4")
+saveRDS(predict_dd, "Output/04_metrics_predict_dd_pc1to4")
 
 
 
@@ -190,7 +190,7 @@ saveRDS(predict_dd, "Output/Predict_DD/20_metrics_predict_dd_pc1to4")
 # take group status for which the proportion is maximal when removing null_prop
 
 # load metrics file
-predict_dd <- readRDS("Output/Predict_DD/20_metrics_predict_dd_pc1to4") %>%
+predict_dd <- readRDS("Output/04_metrics_predict_dd_pc1to4") %>%
   mutate(group2 = as.character(group2))
 
 # calculate null proportions of group representation
@@ -243,9 +243,9 @@ for(sp in dd){
 
 }
 
-write.table(status_all_meth, "Output/Predict_DD/20_Pred_status_all_methods_pc1to4.csv",
+write.table(status_all_meth, "Output/04_Pred_status_all_methods_pc1to4.csv",
             sep=";", row.names = F)
-saveRDS(status_all_meth, "Output/Predict_DD/20_Pred_status_all_methods_pc1to4")
+saveRDS(status_all_meth, "Output/04_Pred_status_all_methods_pc1to4")
 
 
 #### Predict a final status ####
@@ -311,15 +311,8 @@ final_pred <- left_join(best_metrics %>%
                                  demo_6var = demo_vote),
                         by="DD_sp")
 
-write.table(final_pred, "Output/Predict_DD/20_Predicted_status_all_dd_pc1to4.csv", sep=";",
+write.table(final_pred, "Output/04_Predicted_status_all_dd_pc1to4.csv", sep=";",
             row.names = F)
-
-
-
-
-
-
-
 
 
 
@@ -347,45 +340,3 @@ ggplot(wide_df_gp) +
   geom_point(aes(x=EICAT_imp, y=EICAT_no_imp, color= `IAS-T`)) +
   geom_abline(slope=1, intercept = 0)
 
-
-# test triangular plot
-
-library(ade4)
-tri_coord <- data.frame(EICAT_imp = wide_df_gp$EICAT_imp, 
-                        EICAT_no_imp = wide_df_gp$EICAT_no_imp, 
-                        IAS_T = wide_df_gp$`IAS-T`)
-min(tri_coord$EICAT_imp)
-min(tri_coord$EICAT_no_imp)
-min(tri_coord$IAS_T)
-
-max(tri_coord$EICAT_imp)
-max(tri_coord$EICAT_no_imp)
-max(tri_coord$IAS_T)
-
-triangle.plot(tri_coord, scale = F, show.position = F, 
-              min3 = c(min(tri_coord$EICAT_imp), min(tri_coord$EICAT_no_imp),
-                       min(tri_coord$IAS_T)),
-              max3 = c(max(tri_coord$EICAT_imp), max(tri_coord$EICAT_no_imp),
-                       max(tri_coord$IAS_T)))
-
-
-#### Clustering test ####
-
-test <- as.matrix(tri_coord)
-
-## 1. We use minPts = dim + 1 = 5 for iris. A larger value can also be used.
-## 2. We inspect the  k-NN distance plot for k = minPts - 1 = 4
-kNNdistplot(test, k = 5 - 1)
-
-## Noise seems to start around a 4-NN distance of .7
-abline(h=.04, col = "red", lty=2)
-
-## Cluster with the chosen parameters
-res <- dbscan(test, eps = .03, minPts = 5)
-res
-hullplot(test, res)
-res$cluster
-res$eps
-res$minPts
-
-pairs(test, col = res$cluster + 1L)

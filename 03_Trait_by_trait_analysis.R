@@ -10,13 +10,16 @@ library(ggpubr)
 library(car)
 library(emmeans)
 
-tg_combi <- readRDS("Output/Data_clean/10_data_for_traits_groups")
+
+# load group data 
+tg_combi <- readRDS("Output/02_data_for_traits_groups")
 tg <- tg_combi %>% filter(!is.na(hab_sum)) %>%
   filter(combi!="0_0_0") %>%
   select(group2:ln.Beak.Length_Nares) %>%
   rename(binomial = Species1)
 
-all_birds <- readRDS("Output/Data_clean/08_df_all_imp_final") %>%
+# load trait data
+all_birds <- readRDS("Data/00_Complete_trait_data_birds") %>%
   mutate_if(is.character, as.factor) %>%
   # convert Mass, Beak & Clutch with log 
   mutate(ln.Mass = log(Mass),
@@ -207,7 +210,6 @@ ggplot(tg_all_summ, aes(group2, mean)) +
 
 #---------------------- Categorial var
 
-# reprendre ici avec test de khi2
 
 # trophic level
 a1 <- ggplot(tg_all, aes(group2, fill=Trophic.Level)) +
